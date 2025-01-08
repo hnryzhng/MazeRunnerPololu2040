@@ -1,10 +1,7 @@
-# Note: Paste MicroPython scripts into main.py in MicroPython drive within Thonny IDE to upload and run on Pololu robot
-
 from pololu_3pi_2040_robot import robot
 from pololu_3pi_2040_robot.extras import editions
 import time
 import gc
-import os
 
 # NOTE: To import pololu_3pi_2040_robot for running MicroPython, had to comment out "import ctypes" in lib/pio_quadrature_counter.py
 # may need to import ctypes for using quadrature
@@ -19,8 +16,9 @@ encoder_count = encoders.get_counts()
 
 button_a = robot.ButtonA()  # Note: It's not safe to use Button B in a multi-core program.
 
-# mutable variables
+# path history variables
 path_history = []   # List to store the steps taken
+PATH_HISTORY_FILE_NAME = "path_history.txt"
 
 # constants to tweak
 max_speed = 1000    # 600
@@ -30,51 +28,30 @@ calibration_count = 100
 encoder_count_max = 220
 encorder_count_forward = 120
 sensor_threshold = 150  # Line sensor threshold, lower for low-light conditions
-path_history = []   # List to store the steps taken
 
 
 
 def initialize():
-
-    """
-    global path_history
-    path_history.append('hi')
-    display_show(f"path history {path_history}")
-    """
     
-    # actions upon startup 
-    display.fill(0)
-    display.text('initialize', 0, 10)
-    display.show()
+    """ Actions upon robot startup """
+
+    display_show('initializing')
 
     # calibrate sensors (line sensor, encoder)
     line = line_sensors.read_calibrated()[:]
-    display.text('line sns', 0, 20)
-    # display.text(str(line), 0, 30)
-    display.show()
-
-    display.text('calibrating motors', 0, 50)
-    display.show()
-    # time.sleep_ms(500)
+    
     calibrate_motors()    
 
+    display_show('finished initialization!')
 
 
 def calibrate_motors():
 
-    # display.fill(0)
-    # display.text("Place on line", 0, 20)
-    # display.text("and press A to", 0, 30)
-    # display.text("calibrate.", 0, 40)
-    # display.show()
-
-    display_show("Put on line and press A to calibrate HI")
+    display_show("Put on line and press A to calibrate")
 
     while not button_a.check():
         pass
 
-    display.fill(0)
-    display.show()
     time.sleep_ms(500)
 
     motors.set_speeds(calibration_speed, -calibration_speed)
@@ -97,74 +74,119 @@ def calibrate_motors():
 
     motors.off()
 
-def forward():
-    display.fill(0)
-    display.text("FORWARD", 0, 20)
-    # display.text('straight', 0, 20)
-    # display.text('max speed', 0, 30)
-    # display.text(str(max_speed), 0, 40)
-    display.show()
 
-    motors.set_speeds(max_speed, max_speed)
+# Initialize PID controller variables for solve()
+t1 = 0
+t2 = time.ticks_us()
+p = 0
+line = []
+starting = False
+run_motors = True
+last_update_ms = 0
+power_difference = 0
+prev_message = None 
 
-'''
-def turn(direction: str):
-    display.fill(0)
-    display.text('turning...', 0, 20)
-    display.show()
+def solve():
 
-    initial_rotation = encoders.get_counts()
+    display_show("Solving...")
 
-    display.text('initial_rotation', 0, 30)
-    display.text(str(initial_rotation), 0, 40)
-    display.show()
-
-    initial_count = encoders.get_counts()
-
-    if direction == 'L':
-        motors.set_speeds(-turn_speed, turn_speed)    # left    
-        
-        # current_left_wheel_rotation = encoders.get_counts()[0]
-        # current_right_wheel_rotation = encoders.get_counts()[1]
-
-        # while not (encoders.get_counts()[0] <= initial_rotation[0] - int(encoder_count_max) and encoders.get_counts()[1] >= initial_rotation[1] + int(encoder_count_max)):
-            # display.text('left loop 1', 0, 50)
-            # display.show()
-        #     pass 
-        while not (encoders.get_counts()[0] <= initial_count[0] - int(encoder_count_max) and encoders.get_counts()[1] >= initial_count[1] +int(encoder_count_max)):
-            display.text('left loop 2', 0, 50)
-            display.show()
-            pass
-
-        motors.set_speeds(0, 0)    
-
-        
-
-    elif direction == 'R':
-        motors.set_speeds(turn_speed, -turn_speed)    # left
-
-
-    elif dir == 'B':
-        # TODO
-        pass
-
-    else:
-        pass
-
-    sleep()        
-'''
-
-def what_turn():
-    directions = get_available_directions()
+    global p, ir, t1, t2, line, max_speed, run_motors, encoder_count
     
-    display.fill(0)
-    dir = select_turn(directions[0], directions[1], directions[2])
+    last_p = 0  
+    #run_motors = True
+    while run_motors:
+        # save a COPY of the line sensor data in a global variable
+        # to allow the other thread to read it safely.
+        line = line_sensors.read_calibrated()[:]
+        
+        # PID control logic
+        line_sensors.start_read()
+        t1 = t2
+        t2 = time.ticks_us()
+        integral = 0
 
-    remember(dir)
+        # Debug: Print raw sensor readings
+        print(f"Raw sensor readings: {line}")
+        # display.text(f"L snsrs {line}", 0, 20)
+        # display.show()
 
-    turn(dir)
+       # postive p means robot is to left of line
+        if line[1] < 700 and line[2] < 700 and line[3] < 700:
+            if p < 0:
+                l = 0
+            else:
+                l = 4000
+        else:
+            # estimate line position
+            l = (1000*line[1] + 2000*line[2] + 3000*line[3] + 4000*line[4]) // \
+                sum(line)
+
+        p = l - 2000
+        d = p - last_p
+        integral += p
+        last_p = p
+
+        # Debug: Print PID values
+
+        print(f"PID values -> p: {p}, d: {d}, integral: {integral}")
+        # display_show(f"PID values -> p: {p}, d: {d}, integral: {integral}")
+
+        denominator = 10 # decreasing this increases the magnitude of the power_difference - makes turns sharper
+        power_difference = (p / denominator + integral / 10000 + d * 3 / 2) 
+        
+        # Debug: Print power difference
+        print(f"Power difference: {power_difference}")
+        # display_show(f"Power difference: {power_difference}")
+
+        # constrain calculated power difference within specified max speed
+        if(power_difference > max_speed):
+            power_difference = max_speed
+        if(power_difference < -max_speed):
+            power_difference = -max_speed
+
+        # Debug: Print final power difference after limiting
+        print(f"Final power difference: {power_difference}")
+        display_show(f"Final power difference: {power_difference}")
+
+        # Adjust left or right based on calculated power difference
+        if(power_difference < 0): 
+            motors.set_speeds(max_speed+power_difference, max_speed)
+        else:
+            motors.set_speeds(max_speed, max_speed-power_difference)
+        
+        # line = line_sensors.read_calibrated()[:]
+
+        if is_maze_end():
+            # update_display("End")
+            display_show("End")
+            print("Maze END")
+            end()
+            break
+
+        elif (int(line[1]) < 100) and (int(line[2]) < 100) and (int(line[3]) < 100):
+            # dead end
+            motors.set_speeds(0,0)
+            
+            dir = "B"
+            turn(dir)
+
+            remember(dir)
 
 
+        elif (int(line[0]) > sensor_threshold) or (int(line[4]) > sensor_threshold):
+            # possible valid intersection 
+            # left hand or right hand rule?
+            # TODO: implement more sophisticated path exploration algo here such as backtracking? 
+            # maybe in select_turn() since returns L first, or in get available directions
+
+            motors.set_speeds(0,0)
+
+            directions = get_available_directions()    
+            dir = select_turn(directions[0], directions[1], directions[2])
+            
+            turn(dir)
+
+            remember(dir)
 
 def turn(dir: str):
 
@@ -250,10 +272,9 @@ def get_available_directions():
                   
     if int(line[4]) > sensor_threshold: 
         right_dir = True
-        
 
-    #line up with intersection to check for straight line
-
+    # keep straight and moving forward    
+    # line up with intersection to check for straight line
     motors.set_speeds(500,500)
     while not (encoders.get_counts()[0] >= initial_count[0] + int(encorder_count_forward) and encoders.get_counts()[1] >= initial_count[1] + int(encorder_count_forward)):
         pass
@@ -261,7 +282,7 @@ def get_available_directions():
 
     line = line_sensors.read_calibrated()[:]
 
-    ## This could cause issues, we are trying to evaluate if the line ahead is straight...ish 
+    ### This could cause issues, we are trying to evaluate if the line ahead is straight...ish 
     if (int(line[1]) > sensor_threshold) and (int(line[2]) > sensor_threshold):
         straight_dir = True
     elif (int(line[2]) > sensor_threshold) and (int(line[3]) > sensor_threshold):
@@ -273,153 +294,17 @@ def get_available_directions():
     return directions
 
 
-
-
-
-t1 = 0
-t2 = time.ticks_us()
-p = 0
-line = []
-starting = False
-run_motors = True
-last_update_ms = 0
-power_difference = 0
-prev_message = None 
-
-def solve():
-
-    display.fill(0)
-    display.text("Solving...", 0, 10)
-    display.show()
-
-    global p, ir, t1, t2, line, max_speed, run_motors, encoder_count
-    
-    last_p = 0  
-
-    #run_motors = True
-    while run_motors:
-        # save a COPY of the line sensor data in a global variable
-        # to allow the other thread to read it safely.
-        line = line_sensors.read_calibrated()[:]
-        # update_display("")
-        
-        line_sensors.start_read()
-        t1 = t2
-        t2 = time.ticks_us()
-        integral = 0
-
-        # Debug: Print raw sensor readings
-        print(f"Raw sensor readings: {line}")
-        # display.text(f"L snsrs {line}", 0, 20)
-        # display.show()
-
-       # postive p means robot is to left of line
-        if line[1] < 700 and line[2] < 700 and line[3] < 700:
-            if p < 0:
-                l = 0
-            else:
-                l = 4000
-        else:
-            # estimate line position
-            l = (1000*line[1] + 2000*line[2] + 3000*line[3] + 4000*line[4]) // \
-                sum(line)
-
-        p = l - 2000
-        d = p - last_p
-        integral += p
-        last_p = p
-
-        # Debug: Print PID values
-        print(f"PID values -> p: {p}, d: {d}, integral: {integral}")
-        # display.text(f"PID values -> p: {p}, d: {d}, integral: {integral}", 0, 30)
-        # display.show()
-
-        denominator = 10 #decreasing this increases the magnitude of the power_difference - makes turns sharper
-        power_difference = (p / denominator + integral / 10000 + d * 3 / 2) 
-        
-        # Debug: Print power difference
-        print(f"Power difference: {power_difference}")
-        # display.text(f"Power difference: {power_difference}", 0, 40)
-        # display.show()
-
-        if(power_difference > max_speed):
-            power_difference = max_speed
-        if(power_difference < -max_speed):
-            power_difference = -max_speed
-
-        # Debug: Print final power difference after limiting
-        print(f"Final power difference: {power_difference}")
-        # display.text(f"Final Power difference: {power_difference}", 0, 50)
-        # display.show()
-
-        output_string = ""
-        output_string += f"Raw sensor readings: {line}"
-        output_string += " | "
-        output_string += f"PID values -> p: {p}, d: {d}, integral: {integral}"
-        output_string += " | "
-        output_string += f"Power difference: {power_difference}"
-        output_string += " | "
-        output_string += f"Final power difference: {power_difference}"
-        # display_show(output_string)
-
-        if(power_difference < 0): 
-            motors.set_speeds(max_speed+power_difference, max_speed)
-        else:
-            motors.set_speeds(max_speed, max_speed-power_difference)
-        
-        #line = line_sensors.read_calibrated()[:]
-
-        if is_maze_end():
-            update_display("End")
-            end()
-            break
-
-        elif (int(line[1]) < 100) and (int(line[2]) < 100) and (int(line[3]) < 100):
-            #dead end
-            motors.set_speeds(0,0)
-            dir = "B"
-            
-            
-
-            turn(dir)
-
-            remember(dir)
-            # remember("S")
-
-            # update_display("")
-
-
-        elif (int(line[0]) > sensor_threshold) or (int(line[4]) > sensor_threshold):
-            # possible valid intersection 
-            # left hand or right hand rule?
-            # TODO: implement more sophisticated path exploration algo here such as backtracking? 
-            # maybe in select_turn() since returns L first, or in get available directions
-
-            motors.set_speeds(0,0)
-            # what_turn():
-            directions = get_available_directions()    
-            dir = select_turn(directions[0], directions[1], directions[2])
-            
-            turn(dir)
-
-            # remember("S")
-            remember(dir)
-
-
-            # update_display("")
-
-
 def remember(direction: str):
-    """Remembers the direction the robot takes."""
+    """ Remembers the direction the robot takes. """
     
     global path_history
 
     path_history.append(direction)
-    display_show(f"Path recorded: {direction}")
+    
     print(f"Path recorded: {direction}")  # Debug print to confirm
+    display_show(f"Path recorded: {direction}")
 
-    # Log the direction to the file so can be accessed after soft reboot
-    log_to_file(direction)
+    log_to_file(direction)  # Log the direction to the file so path history can be accessed even after soft reboot
 
 def clear_path_history(filename="path_history.txt"):
     try:
@@ -430,7 +315,7 @@ def clear_path_history(filename="path_history.txt"):
 
 def log_to_file(message, filename="path_history.txt"):
     
-    # DEBUG
+    # DEBUG: memory capacity and allocation for file writing
     # Andrew: This really slows things down, and usually gets a lot wrong!
     # kb_free = gc.mem_free() / 1024
     # kb_used = gc.mem_alloc() / 1024
@@ -439,7 +324,7 @@ def log_to_file(message, filename="path_history.txt"):
     #     f.write(message + " " + "RAM: "+str(kb_used)+" / "+str(kb_total)+ "\n")
     # gc.collect()
 
-    """Logs a message (direction) to a file, appending it."""
+    """ Logs a message (direction) to a file, appending it. """
     try:
         with open(filename, 'a') as f:
             f.write(message + "\n")
@@ -454,10 +339,6 @@ def read_file(filename="path_history.txt"):
     #     display.fill(0)
     #     display.text(content, 0, 20)
     #     display.show()
-    
-    # gc.collect()
-
-    # path_history = []
 
     try:
         with open(filename, 'r') as f:
@@ -470,13 +351,6 @@ def read_file(filename="path_history.txt"):
     
     return path_history
 
-
-
-def test_display():
-    display.fill(0)
-    display.text('hiya', 0, 0)
-    display.text('bye', 0, 10)
-    display.show()
 
 def display_show(message: str):
     # Fill the display with black (clear it)
@@ -502,266 +376,15 @@ def display_show(message: str):
     display.show()
 
 
-def update_display(message):
-    global prev_message
-    display.fill(0)
-    display.text(f"M:{message}", 0, 0)
-    display.text(f"L:{line[0]},R:{line[4]}", 0, 10)
-    display.text(f"S:{line[1]},{line[2]},{line[3]}", 0, 20)
-    prev_message = message
-    #ms = (t2 - t1)/1000
-    #display.text(f"Main loop: {ms:.1f}ms", 0, 20)
-    #display.text(f'{prev_message}', 0, 20)
-    # display.text('pd = '+str(power_difference), 0, 40)
-
-    # 64-40 = 24
-    scale = 24/1000
-
-    display.fill_rect(36, 64-int(line[0]*scale), 8, int(line[0]*scale), 1)
-    display.fill_rect(48, 64-int(line[1]*scale), 8, int(line[1]*scale), 1)
-    display.fill_rect(60, 64-int(line[2]*scale), 8, int(line[2]*scale), 1)
-    display.fill_rect(72, 64-int(line[3]*scale), 8, int(line[3]*scale), 1)
-    display.fill_rect(84, 64-int(line[4]*scale), 8, int(line[4]*scale), 1)
-
-    display.show()
-
-
 def sleep():    
     # delay x milliseconds, usually for transitioning between text on display
     time.sleep_ms(1000)
 
 
-
-def recall():
-    """ Traverses the stored path from beginning of maze """
-    print(f"Starting recall navigation")
-    
-    global path_history
-    
-    # Read path history
-    path_history = read_file()
-    # mock_path_history = ["L", "R", "L"]  # mock for testing
-    print(f"path_history {path_history}")
-    # print(f"mock path history: {mock_path_history}")
-
-    # Follow each direction in path history
-    
-    path_history = path_history[:]  # save copy of path history to global variable to allow other thread to read it safely
-    forward_recall(path_history)  # Move straight until we hit valid junction/intersection, then turn given direction argument
-        
-        
-    print(f"Completed recall, path history: {path_history}")
-
-
-def forward_recall(path_history):
-    
-    global p, t1, t2, line, max_speed, run_motors
-    
-    last_p = 0  
-    
-    print(f"forward_recall path history: {path_history}")
-
-    while run_motors:
-
-        for direction in path_history:
-            # print("---------")
-            # print(f"will turn direction {direction}")
-
-            # save a COPY of the line sensor data in a global variable
-            # to allow the other thread to read it safely.
-            line = line_sensors.read_calibrated()[:]
-            # update_display("")
-            
-            line_sensors.start_read()
-            t1 = t2
-            t2 = time.ticks_us()
-            integral = 0
-
-            # Debug: Print raw sensor readings
-            # print(f"Raw sensor readings: {line}")
-            # display.text(f"L snsrs {line}", 0, 20)
-            # display.show()
-
-            # postive p means robot is to left of line
-            if line[1] < 700 and line[2] < 700 and line[3] < 700:
-                if p < 0:
-                    l = 0
-                else:
-                    l = 4000
-            else:
-                # estimate line position
-                l = (1000*line[1] + 2000*line[2] + 3000*line[3] + 4000*line[4]) // \
-                    sum(line)
-
-            p = l - 2000
-            d = p - last_p
-            integral += p
-            last_p = p
-
-            # Debug: Print PID values
-            # print(f"PID values -> p: {p}, d: {d}, integral: {integral}")
-            # display.text(f"PID values -> p: {p}, d: {d}, integral: {integral}", 0, 30)
-            # display.show()
-
-            denominator = 10 #decreasing this increases the magnitude of the power_difference - makes turns sharper
-            power_difference = (p / denominator + integral / 10000 + d * 3 / 2) 
-            
-            # Debug: Print power difference
-            # print(f"Power difference: {power_difference}")
-            # display.text(f"Power difference: {power_difference}", 0, 40)
-            # display.show()
-
-            if(power_difference > max_speed):
-                power_difference = max_speed
-            if(power_difference < -max_speed):
-                power_difference = -max_speed
-
-            # Debug: Print final power difference after limiting
-            # print(f"Final power difference: {power_difference}")
-            # display.text(f"Final Power difference: {power_difference}", 0, 50)
-            # display.show()
-
-            if(power_difference < 0): 
-                motors.set_speeds(max_speed+power_difference, max_speed)
-            else:
-                motors.set_speeds(max_speed, max_speed-power_difference)
-            
-
-            if is_maze_end():
-                update_display("End")
-                end()
-                break
-
-            # elif (int(line[1]) < 100) and (int(line[2]) < 100) and (int(line[3]) < 100):
-            #     # dead end
-            #     # print("dead end")
-            #     display_show("dead end")
-
-            #     motors.set_speeds(0,0)
-                
-            #     # direction = "B"
-
-            #     turn_recall("B")
-
-
-
-            elif (int(line[0]) > sensor_threshold) or (int(line[4]) > sensor_threshold):
-                # possible valid intersection 
-
-                print(f"valid junction: turn: {direction}")
-                display_show("valid junction")
-
-                motors.set_speeds(0,0)
-                
-                directions = get_available_directions_recall()    
-                # display_show(f"turning {direction}")
-
-                turn_recall(direction)
-                
-                # gc.collect()
-
-                # break
-
-
-    
-def get_available_directions_recall():
-    display.fill(0)
-    initial_count = encoders.get_counts()
-
-    try:
-        line = line_sensors.read_calibrated()[:]
-    except Exception as e:
-        return [False, False, False]
-
-    # left_dir = False
-    # right_dir = False
-    # straight_dir = Falsew
-
-    if int(line[0]) > sensor_threshold:
-        # left_dir = True
-        encoders
-                  
-    # if int(line[4]) > sensor_threshold: 
-        # right_dir = True
-        
-
-    # line up with intersection to check for straight line
-    # TODO: refactor into method keep_moving_straight() or keep_moving_forward?
-    motors.set_speeds(500,500)
-    while not (encoders.get_counts()[0] >= initial_count[0] + int(encorder_count_forward) and encoders.get_counts()[1] >= initial_count[1] + int(encorder_count_forward)):
-        # while straight line, maintain moving speed; otherwise, stop
-        pass
-    motors.set_speeds(0, 0)
-
-    # line = line_sensors.read_calibrated()[:]
-
-    ## This could cause issues, we are trying to evaluate if the line ahead is straight...ish 
-    # if (int(line[1]) > sensor_threshold) and (int(line[2]) > sensor_threshold):
-    #     straight_dir = True
-    # elif (int(line[2]) > sensor_threshold) and (int(line[3]) > sensor_threshold):
-    #     straight_dir = True
-
-    # directions = [left_dir, right_dir, straight_dir]
-
-    gc.collect()
-    # return directions
-
-
-def turn_recall(dir: str):
-
-    display.fill(0)
-    display.text(dir, 0, 30)
-    display.show()
-
-    initial_count = encoders.get_counts()
-
-    if dir == "L":
-        motors.set_speeds(-turn_speed, turn_speed)
-        # Wait until the robot has turned approximately 90 degrees left
-        while not (encoders.get_counts()[0] <= initial_count[0] - int(encoder_count_max) and encoders.get_counts()[1] >= initial_count[1] +int(encoder_count_max)):
-            pass
-        motors.set_speeds(0, 0)
-
-    elif dir == "R":
-        motors.set_speeds(turn_speed, -turn_speed)
-        # Wait until the robot has turned approximately 90 degrees right
-        while not (encoders.get_counts()[0] >= initial_count[0] + int(encoder_count_max) and encoders.get_counts()[1] <= initial_count[1] - int(encoder_count_max)):
-            pass
-        motors.set_speeds(0, 0)
-
-    elif dir == "S":
-        pass
-        # Straight - no specific encoder count adjustment needed here
-
-
-    elif dir == "B":
-
-        motors.set_speeds(-turn_speed, turn_speed)
-        # Wait until the robot has turned approximately 180 degrees
-        while not ((encoders.get_counts()[0] <= initial_count[0] - (int(encoder_count_max)*2)) and (encoders.get_counts()[1] >= initial_count[1] + (int(encoder_count_max)*2))):
-            pass
-        motors.set_speeds(0, 0)
-
-
-
-
 # DRIVER CODE
-# clear_memory()
-# read_file()
-# log_to_file('logged hi')
 
 initialize()
 clear_path_history()
 
 while True:
     solve()
-    # recall()
-
-    # display_show("hellohenry")    
-    # display.text('loop', 0, 20)
-    # display.show()
-    # test_display()
-    # forward()
-    # turn("L")
-    # motors.set_speeds(400,400)
-    

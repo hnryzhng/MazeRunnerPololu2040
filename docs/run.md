@@ -2,7 +2,7 @@
 
 - Open Thonny IDE and connect to the Pololu robot. For help, refer to the corresponding section in [setup.md](setup.md)
 
-- Open the file of the script you want to execute in Thonny IDE. (screenshot example: solve.py)
+- Open the file of the script you want to execute in Thonny IDE. (in screenshot, the target script is ```solve.py```)
 
 <p align="center">
   <img width="250" alt="Screenshot 2025-01-09 at 2 54 02 PM" src="https://github.com/user-attachments/assets/54db8caf-ea89-4a01-801f-ff3fb475d66c" />

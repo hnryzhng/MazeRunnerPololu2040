@@ -1,6 +1,6 @@
 # Run
 
-- Load the MicroPython volume within Thonny IDE by connecting to the Pololu robot. Refer to [setup.md](setup.md)
+- Open Thonny IDE andn connect to the Pololu robot. Refer to the corresopnding section in [setup.md](setup.md)
 
 - Open the file of the script you want to execute in Thonny IDE. (screenshot example: solve.py)
 

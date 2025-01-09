@@ -2,7 +2,7 @@
 Original implementation by Andrew Ramsier <br />
 Adapted by Henry Zheng <br />
 
-## Background
+## Credits
 This Python version of Maze Runner was adapted from Andrew Ramsier's implementation, which can be found here: https://github.com/Brewhan/MazeRunner/
 
 ## Setup

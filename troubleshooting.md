@@ -8,3 +8,15 @@ Turn on the robot in bootloader mode (press Button B and hold the Reset button).
 <p align="center">
   <img width="400" alt="robot.png" src="https://github.com/user-attachments/assets/8ebb9599-d829-418b-97f3-d3f209e2228b" />
 </p>
+<p align="center">
+  <img width="1150" alt="Screenshot 2025-01-09 at 1 43 28 PM" src="https://github.com/user-attachments/assets/391f0b4d-afa6-441d-a139-88ce8b208dcd" />
+</p>
+<p align="center">
+  <img width="1160" alt="Screenshot 2025-01-09 at 1 43 46 PM" src="https://github.com/user-attachments/assets/44f50421-bb75-4729-b88c-9652965b1770" />
+</p>
+<p align="center">
+  <img width="1786" alt="Screenshot 2025-01-09 at 1 44 17 PM" src="https://github.com/user-attachments/assets/34cfa5bf-6875-4c5d-b505-f5ac757429c9" />
+</p>
+<p align="center">
+  <img width="927" alt="Screenshot 2025-01-09 at 1 42 44 PM" src="https://github.com/user-attachments/assets/8d283bce-813d-4e89-aa7f-f47cfe965b48" />
+</p>

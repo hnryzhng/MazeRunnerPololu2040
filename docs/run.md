@@ -1,6 +1,6 @@
 # Run
 
-- Open Thonny IDE andn connect to the Pololu robot. Refer to the corresponding section in [setup.md](setup.md)
+- Open Thonny IDE and connect to the Pololu robot. Refer to the corresponding section in [setup.md](setup.md)
 
 - Open the file of the script you want to execute in Thonny IDE. (screenshot example: solve.py)
 

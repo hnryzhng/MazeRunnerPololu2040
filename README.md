@@ -1,5 +1,5 @@
 # Maze Runner Pololu 2040 (Python)
-Original implmentation by Andrew Ramsier <br />
+Original implementation by Andrew Ramsier <br />
 Adapted by Henry Zheng <br />
 
 ## Setup

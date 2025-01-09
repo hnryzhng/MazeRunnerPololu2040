@@ -6,10 +6,14 @@ Robot: Pololu 3Pi Plus 2040 <br/>
 https://www.pololu.com/product/5001
 
 ## Setup
-- Install Thonny IDE (https://thonny.org/)
+
+Refer to file: [setup.md](setup.md)
 
 
-  
+## Run
+
+Refer to file: [run.md](run.md)
+
 
 ## Troubleshooting
 ### MicroPython volume files are deleted

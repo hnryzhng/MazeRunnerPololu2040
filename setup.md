@@ -24,7 +24,7 @@
 
 ```Folder "pololu_3pi_2040_robot", file "solve.py", file "recall.py"```
 <p align="center">
-<img width="500" alt="Screenshot 2025-01-09 at 2 28 27 PM" src="https://github.com/user-attachments/assets/44a4399f-8806-4c59-87b7-c05ae3853211" />
+<img width="300" alt="Screenshot 2025-01-09 at 2 28 27 PM" src="https://github.com/user-attachments/assets/44a4399f-8806-4c59-87b7-c05ae3853211" />
 </p>
 <br/>
 

@@ -2,7 +2,7 @@
 
 
 ## MicroPython volume files are gone
-<b>Problem</b>: Sometimes when you reset the robot or upload a script, the robot MicroPython volume will lose all its files.  
+<b>Problem</b>: Sometimes when you reset the robot or upload a script, the robot MicroPython volume will lose all of its files.  
 <b>Solution (screenshots for MacOS)</b>: 
 - Turn on the robot in bootloader mode (press Button B and hold the Reset button, then let go of the Reset button). 
 <p align="center">

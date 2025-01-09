@@ -7,16 +7,16 @@ https://www.pololu.com/product/5001
 
 ## Setup
 
-Refer to file: [setup.md](setup.md)
+Refer to file: [setup.md](docs/setup.md)
 
 
 ## Run
 
-Refer to file: [run.md](run.md)
+Refer to file: [run.md](docs/run.md)
 
 
 ## Troubleshooting
-Refer to file: [troubleshooting.md](troubleshooting.md)
+Refer to file: [troubleshooting.md](docs/troubleshooting.md)
 
 ## Lesson Plan
 

@@ -1,9 +1,10 @@
 # Maze Runner Pololu 2040 (Python)
-By Andrew Ramsier <br />
+Original implmentation by Andrew Ramsier <br />
 Adapted by Henry Zheng <br />
 
 ## Setup
-- Install Thonny IDE
+- Install Thonny IDE (https://thonny.org/)
+  
 
 ## Troubleshooting
 ### MicroPython volume files are deleted

@@ -16,8 +16,7 @@ Refer to file: [run.md](run.md)
 
 
 ## Troubleshooting
-### MicroPython volume files are deleted
-Turn on the robot in bootloader mode (press Button B and hold the Reset button). The MicroPython volume will turn into... 
+Refer to file: [troubleshooting.md](troubleshooting.md)
 
 ## Lesson Plan
 

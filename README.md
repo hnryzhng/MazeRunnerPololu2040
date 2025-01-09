@@ -21,4 +21,4 @@ Turn on the robot in bootloader mode (press Button B and hold the Reset button).
 
 
 ## Credits
-This Python version of Maze Runner was adapted from Andrew Ramsier's implementation, which can be found here: https://github.com/Brewhan/MazeRunner/
+This Python version of Maze Runner was adapted from Andrew Ramsier's design and implementation, which can be found here: https://github.com/Brewhan/MazeRunner/

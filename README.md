@@ -5,6 +5,10 @@ Adapted by Henry Zheng <br />
 Robot: Pololu 3Pi Plus 2040 <br/>
 https://www.pololu.com/product/5001
 
+Demo:
+
+(VIDEO)
+
 ## Setup
 
 Refer to file: [setup.md](docs/setup.md)

@@ -5,8 +5,8 @@ Adapted by Henry Zheng <br />
 Robot: Pololu 3Pi Plus 2040 <br/>
 https://www.pololu.com/product/5001
 
-Demo:
 ![robot-demo-1](https://github.com/user-attachments/assets/41a8717f-f941-4356-b65a-284d3fe1b028)
+
 
 ## Setup
 

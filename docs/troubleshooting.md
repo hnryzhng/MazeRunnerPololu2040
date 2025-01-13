@@ -15,7 +15,7 @@
 </p>
 <br/>
 
-- Download the latest MicroPython firmware .uf2 file for the Pololu 3pi plus 2040 robot [here](https://micropython.org/download/POLOLU_3PI_2040_ROBOT/), then drag it into the volume "RPI-RP2". 
+- Download the latest MicroPython firmware .uf2 file for the Pololu 3pi plus 2040 robot [here](https://micropython.org/download/POLOLU_3PI_2040_ROBOT/), then drag the file from the folder you downloaded to into the volume "RPI-RP2". 
 <p align="center">
   <img width="600" alt="Screenshot 2025-01-09 at 1 43 46 PM" src="https://github.com/user-attachments/assets/44f50421-bb75-4729-b88c-9652965b1770" />
 </p>
@@ -25,7 +25,7 @@
 </p>
 <br/>
 
-- After the .uf2 file is finished copying, the volume will turn back into "MicroPython", essentially resetting the robot to its initial factory state.
+- After the .uf2 file is finished copying, the volume will turn back into "MicroPython" with all the necessary default files, essentially resetting the robot to its initial factory state.
 <p align="center">
   <img width="600" alt="Screenshot 2025-01-09 at 1 42 44 PM" src="https://github.com/user-attachments/assets/8d283bce-813d-4e89-aa7f-f47cfe965b48" />
 </p>

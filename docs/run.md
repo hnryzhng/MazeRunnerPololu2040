@@ -1,4 +1,4 @@
-# Run
+# Run script
 
 - Open Thonny IDE and connect to the Pololu robot. For help, refer to the corresponding section in [setup.md](setup.md)
 

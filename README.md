@@ -13,7 +13,7 @@ https://www.pololu.com/product/5001
 Refer to file: [setup.md](docs/setup.md)
 
 
-## Run
+## Run script
 
 Refer to file: [run.md](docs/run.md)
 

@@ -7,6 +7,10 @@ https://www.pololu.com/product/5001
 
 ![robot-demo-1](https://github.com/user-attachments/assets/41a8717f-f941-4356-b65a-284d3fe1b028)
 
+## Resources
+Robot: [Pololu 3pi+ 2040](https://www.pololu.com/product/5001)
+Integrated Development Environment (IDE): [Thonny](https://thonny.org/)
+
 
 ## Setup
 

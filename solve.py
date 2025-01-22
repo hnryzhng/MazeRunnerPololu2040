@@ -1,5 +1,5 @@
 from pololu_3pi_2040_robot import robot
-from pololu_3pi_2040_robot.extras import editions
+# from pololu_3pi_2040_robot.extras import editions
 import time
 import gc
 
@@ -128,14 +128,14 @@ def solve():
 
         # Debug: Print PID values
 
-        print(f"PID values -> p: {p}, d: {d}, integral: {integral}")
+        # print(f"PID values -> p: {p}, d: {d}, integral: {integral}")
         # display_show(f"PID values -> p: {p}, d: {d}, integral: {integral}")
 
         denominator = 10 # decreasing this increases the magnitude of the power_difference - makes turns sharper
         power_difference = (p / denominator + integral / 10000 + d * 3 / 2) 
         
         # Debug: Print power difference
-        print(f"Power difference: {power_difference}")
+        # print(f"Power difference: {power_difference}")
         # display_show(f"Power difference: {power_difference}")
 
         # constrain calculated power difference within specified max speed
@@ -145,8 +145,8 @@ def solve():
             power_difference = -max_speed
 
         # Debug: Print final power difference after limiting
-        print(f"Final power difference: {power_difference}")
-        display_show(f"Final power difference: {power_difference}")
+        # print(f"Final power difference: {power_difference}")
+        # display_show(f"Final power difference: {power_difference}")
 
         # Adjust left or right based on calculated power difference
         if(power_difference < 0): 
@@ -161,6 +161,9 @@ def solve():
             display_show("End")
             print("Maze END")
             end()
+
+            gc.collect()
+
             break
 
         elif (int(line[1]) < 100) and (int(line[2]) < 100) and (int(line[3]) < 100):
@@ -187,6 +190,8 @@ def solve():
             turn(dir)
 
             remember(dir)
+
+            gc.collect()
 
 def turn(dir: str):
 
@@ -244,6 +249,7 @@ def select_turn(found_left: bool, found_right: bool, found_straight: bool):
 def is_maze_end():
     line = line_sensors.read_calibrated()[:]
     return ((int(line[0]) > 300) and (int(line[1]) > 600) and (int(line[2]) > 600) and (int(line[3]) > 600) and (int(line[4]) > 300))
+    
 
 def end():
     motors.off()

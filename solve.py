@@ -305,12 +305,67 @@ def remember(direction: str):
     
     global path_history
 
-    path_history.append(direction)
-    
+    path_history.append(direction)  # TODO: right now, path_history is not actually written to file...
+
     print(f"Path recorded: {direction}")  # Debug print to confirm
     display_show(f"Path recorded: {direction}")
 
-    log_to_file(direction)  # Log the direction to the file so path history can be accessed even after soft reboot
+    # log_to_file(direction)  # Log the direction to the file so path history can be accessed even after soft reboot
+    
+    # TODO: test if path history global var can be updated and retained after each solve() loop
+    path_history = path_history # update global path history variable, is this even needed, or does path_history.append() work to update global var path_history?
+
+    # TODO: may need to put log_path_history at end of maze condition within solve()
+
+
+# Path simplification.  The strategy is that whenever we encounter a
+# sequence xBx, we can simplify it by cutting out the dead end.  For
+# example, LBL -> S, because a single S bypasses the dead end
+# represented by LBL.
+def simplify_path():
+    """
+        Path Simplification Mapping:
+        L B L -> S
+        R B L -> B
+        S B L -> R
+    """
+    # TODO: should we pass in global var path_history then write to file at end, or reduce and write to file at each call to remember()?
+    # if so, may need to rewrite how remember() to how path_history is handled and read from file after each loop?
+    path_length = len(path_history)
+    
+    # validation: simplify path only if second-to-last turn is B
+    if (path_length < 3 or path_history[path_length-2]  != 'B'):
+        return
+
+    # TODO: if reducing a path chunk that includes S, will need to remember S in path history
+
+    # Approach 1: original implementation with counting angles
+    total_angle = 0
+    for i in range(1, 3+1):
+        current_step = path_history[path_length-i]
+        if current_step == 'R':
+            total_angle += 90
+        elif current_step == 'L':
+            total_angle += 270
+        elif current_step == 'B':
+            total_angle += 180
+
+    # Get angle as number between 0 and 360 degrees
+    total_angle = total_angle % 360
+
+    # Replace all of the set of steps with the corresponding single step
+    if total_angle == 0:
+        path_history[path_length-3] = 'S'
+    elif total_angle == 90:
+        path_history[path_length-3] = 'R'
+    elif total_angle == 180:
+        path_history[path_length-3] = 'B'
+    elif total_angle == 270:
+        path_history[path_length-3] = 'L'
+        
+    # The path is now 2 steps shorter (3 steps reduced to 1)
+    path_length -= 2    # TODO: statement only needed if path_length is a global var
+
 
 def clear_path_history(filename="path_history.txt"):
     try:
@@ -334,9 +389,41 @@ def log_to_file(message, filename="path_history.txt"):
     try:
         with open(filename, 'a') as f:
             f.write(message + "\n")
+        # TODO: add garbage collection?
+        # gc.collect()
     except Exception as e:
         print(f"Error logging to file: {e}")
+
+def log_path_history(path_history, filename="path_history.txt"):
+    # Write entire path history list to specified file
+
+    try:
+        with open(filename, 'w') as f:
+            # f.write(message + "\n")
+            f.wrirte(path_history)
+        # TODO: add garbage collection?
+        # gc.collect()
+    except Exception as e:
+        print(f"Error logging to file: {e}")
+
+def read_path_history(filename="path_history.txt"):
+    # Read entire path history list from specified file
     
+    path_history = []
+    try:
+        with open(filename, 'r') as f:
+            # lines = f.readlines()
+            # path_history = [line.strip() for line in lines] # Strip newline characters and return the list
+            
+            path_history = f.read()
+            print(f"Successfully read path history {path_history}")
+            
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return path_history
+    
+    return path_history
+
 def read_file(filename="path_history.txt"):
     
     # DEBUG

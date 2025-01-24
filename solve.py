@@ -159,7 +159,11 @@ def solve():
         if is_maze_end():
             # update_display("End")
             display_show("End")
+            
             print("Maze END")
+
+            log_path_history()
+
             end()
 
             gc.collect()
@@ -309,12 +313,10 @@ def remember(direction: str):
 
     print(f"Path recorded: {direction}")  # Debug print to confirm
     display_show(f"Path recorded: {direction}")
-
-    # log_to_file(direction)  # Log the direction to the file so path history can be accessed even after soft reboot
     
-    # TODO: test if path history global var can be updated and retained after each solve() loop
-    path_history = path_history # update global path history variable, is this even needed, or does path_history.append() work to update global var path_history?
+    simplify_path()
 
+    # log_to_file(direction)  # Log the direction
     # TODO: may need to put log_path_history at end of maze condition within solve()
 
 
@@ -328,9 +330,21 @@ def simplify_path():
         L B L -> S
         R B L -> B
         S B L -> R
+        R B R -> S  (henry added: validate if works in implementation below)
+        L B R -> B  (henry added: validate if works in implementation below)
+
+        Adapted Mapping (without step 'S'): TEST
+        L B L -> _ (S)
+        R B L -> B 
+        _ B L -> R (possibly invalid if we get the turns at intersection, since only two steps would introduce overlap with previous chunk of triplet steps, more complicated to parse)
+        R B R -> _ (S)  (henry added: validate if works in implementation below)
+        L B R -> B  (henry added: validate if works in implementation below)
     """
     # TODO: should we pass in global var path_history then write to file at end, or reduce and write to file at each call to remember()?
     # if so, may need to rewrite how remember() to how path_history is handled and read from file after each loop?
+    
+    global path_history
+    
     path_length = len(path_history)
     
     # validation: simplify path only if second-to-last turn is B
@@ -364,7 +378,7 @@ def simplify_path():
         path_history[path_length-3] = 'L'
         
     # The path is now 2 steps shorter (3 steps reduced to 1)
-    path_length -= 2    # TODO: statement only needed if path_length is a global var
+    # path_length -= 2    # TODO: statement only needed if path_length is a global var
 
 
 def clear_path_history(filename="path_history.txt"):
@@ -394,13 +408,15 @@ def log_to_file(message, filename="path_history.txt"):
     except Exception as e:
         print(f"Error logging to file: {e}")
 
-def log_path_history(path_history, filename="path_history.txt"):
+def log_path_history(filename="path_history.txt"):
     # Write entire path history list to specified file
+
+    global path_history
 
     try:
         with open(filename, 'w') as f:
             # f.write(message + "\n")
-            f.wrirte(path_history)
+            f.write(path_history)
         # TODO: add garbage collection?
         # gc.collect()
     except Exception as e:

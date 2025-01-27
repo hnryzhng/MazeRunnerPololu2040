@@ -330,6 +330,7 @@ def simplify_path():
         L B L -> S
         R B L -> B
         S B L -> R
+        S B R -> L (henry added: validate if works in implementation below)
         R B R -> S  (henry added: validate if works in implementation below)
         L B R -> B  (henry added: validate if works in implementation below)
 
@@ -337,6 +338,7 @@ def simplify_path():
         L B L -> _ (S)
         R B L -> B 
         _ B L -> R (possibly invalid if we get the turns at intersection, since only two steps would introduce overlap with previous chunk of triplet steps, more complicated to parse)
+        _ B R -> L (possibly invalid if we get the turns at intersection, since only two steps would introduce overlap with previous chunk of triplet steps, more complicated to parse)
         R B R -> _ (S)  (henry added: validate if works in implementation below)
         L B R -> B  (henry added: validate if works in implementation below)
     """

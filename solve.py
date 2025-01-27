@@ -334,7 +334,7 @@ def simplify_path():
         R B R -> S  (henry added: validate if works in implementation below)
         L B R -> B  (henry added: validate if works in implementation below)
 
-        Adapted Mapping (without step 'S'): TEST
+        Adapted Mapping (without step 'S'): TEST - S is still remembered right now
         L B L -> _ (S)
         R B L -> B 
         _ B L -> R (possibly invalid if we get the turns at intersection, since only two steps would introduce overlap with previous chunk of triplet steps, more complicated to parse)

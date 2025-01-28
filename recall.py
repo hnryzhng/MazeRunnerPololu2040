@@ -37,8 +37,10 @@ def initialize():
     display_show('initializing')
 
     global path_history, current_step
-    path_history = read_file()  # Read the path history from the file at startup
+    
+    # path_history = read_file()  # Read the path history from the file at startup
     # path_history = ["L", "R", "L", "L", "R", "L", "R"]  # mock for testing
+    path_history = read_path_history()
     current_step = 0  # Reset the current step pointer to the beginning of the path history
 
 
@@ -376,6 +378,19 @@ def get_available_directions():
     gc.collect()
     return directions
 
+def read_path_history(filename="path_history.txt"):
+    # Read entire path history list from specified file
+    
+    output_path_history = []
+    try:
+        with open(filename, 'r') as f:
+            output_path_history = f.read()
+            print(f"Successfully read path history {path_history}")
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return output_path_history
+    
+    return output_path_history
     
 def read_file(filename="path_history.txt"):
     

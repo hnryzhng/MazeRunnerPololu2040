@@ -380,7 +380,7 @@ def get_available_directions():
 
 def read_path_history(filename="path_history.txt"):
     # Read entire path history list from specified file
-    
+
     output_path_history = []
     try:
         with open(filename, 'r') as f:
@@ -388,7 +388,6 @@ def read_path_history(filename="path_history.txt"):
             print(f"Successfully read path history {path_history}")
     except Exception as e:
         print(f"Error reading file: {e}")
-        return output_path_history
     
     return output_path_history
     

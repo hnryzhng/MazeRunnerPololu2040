@@ -314,7 +314,7 @@ def remember(direction: str):
     print(f"Path recorded: {direction}")  # Debug print to confirm
     display_show(f"Path recorded: {direction}")
     
-    # simplify_path()
+    simplify_path()
     # display_show(f"PH: {path_history}")   # TODO: global var path history list works
 
     # log_to_file(direction)  # Log the direction

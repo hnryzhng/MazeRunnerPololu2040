@@ -162,7 +162,7 @@ def solve():
             
             print("Maze END")
 
-            log_path_history()
+            save_path_history()
 
             end()
 
@@ -318,7 +318,7 @@ def remember(direction: str):
     # display_show(f"PH: {path_history}")   # TODO: global var path history list works
 
     # log_to_file(direction)  # Log the direction
-    # TODO: may need to put log_path_history at end of maze condition within solve()
+    # TODO: may need to put save_path_history at end of maze condition within solve()
 
 
 # Path simplification.  The strategy is that whenever we encounter a
@@ -415,7 +415,7 @@ def log_to_file(message, filename="path_history.txt"):
     except Exception as e:
         print(f"Error logging to file: {e}")
 
-def log_path_history(filename="path_history.txt"):
+def save_path_history(filename="path_history.txt"):
     # Write entire path history list to specified file
 
     global path_history

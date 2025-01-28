@@ -328,12 +328,16 @@ def remember(direction: str):
 def simplify_path():
     """
         Path Simplification Mapping:
-        L B L -> S
-        R B L -> B
-        S B L -> R
-        S B R -> L (henry added: validate if works in implementation below)
-        R B R -> S  (henry added: validate if works in implementation below)
-        L B R -> B  (henry added: validate if works in implementation below)
+
+        L B L -> S, (270 + 180 + 270) modulo 360 -> 0
+        R B L -> B, (90 + 180 + 270) modulo 360 -> 180 
+        S B L -> R, (0 + 180 + 270) modulo 360 ->  90 
+        
+        L B R -> B, (270 + 180 + 90) modulo 360 -> 180 
+        R B R -> S,  (henry added) (90 + 180 + 90) modulo 360 -> 0
+        S B R -> L, (henry added) (0 + 180 + 90) modulo 360 -> 270 
+
+        
 
         Adapted Mapping (without step 'S'): TEST - S is still remembered right now
         L B L -> _ (S)

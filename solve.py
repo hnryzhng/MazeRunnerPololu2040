@@ -354,7 +354,7 @@ def simplify_path():
     
     path_length = len(path_history)
     
-    # validation: simplify path only if second-to-last turn is B
+    # validation: simplify path only if there are at least 3 steps and second-to-last turn is B
     if (path_length < 3 or path_history[path_length-2]  != 'B'):
         return
 

@@ -4,7 +4,8 @@
 
 - Install Thonny IDE (https://thonny.org/)
 
-- Connect Thonny IDE to Pololu robot: 
+- Connect Thonny IDE to Pololu robot:
+    - Use a USB-C cable to connect the robot to the laptop 
     - Run -> Configure Interpreter
     <p align="center">
         <img width="800" alt="Screenshot 2025-01-09 at 1 41 24 PM" src="https://github.com/user-attachments/assets/1631c176-87da-4f9c-90be-a651b75ddcbd" />

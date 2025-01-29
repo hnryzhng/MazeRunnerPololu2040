@@ -27,7 +27,7 @@ calibration_speed = 1000
 calibration_count = 100
 encoder_count_max = 220
 encorder_count_forward = 120
-sensor_threshold = 150  # Line sensor threshold, lower for low-light conditions
+sensor_threshold = 150  # Line sensor threshold: value above threshold for dark surface, value below threshold for light surface (lower threshold value for low-light conditions) 
 
 
 
@@ -88,7 +88,7 @@ prev_message = None
 
 def solve():
 
-    display_show("Solving...")
+    # display_show("Solving...")
 
     global p, ir, t1, t2, line, max_speed, run_motors, encoder_count
     
@@ -100,6 +100,8 @@ def solve():
         line = line_sensors.read_calibrated()[:]
         
         # PID control logic
+        # display_show('calc PID')
+        
         line_sensors.start_read()
         t1 = t2
         t2 = time.ticks_us()
@@ -156,6 +158,7 @@ def solve():
         
         # line = line_sensors.read_calibrated()[:]
 
+        display_show('decide on dir')
         if is_maze_end():
             # update_display("End")
             display_show("End")
@@ -170,7 +173,9 @@ def solve():
 
             break
 
-        elif (int(line[1]) < 100) and (int(line[2]) < 100) and (int(line[3]) < 100):
+        # elif (int(line[1]) < 100) and (int(line[2]) < 100) and (int(line[3]) < 100):
+        elif (int(line[0]) < sensor_threshold) and (int(line[1]) < sensor_threshold) and (int(line[2]) < sensor_threshold) and (int(line[3]) < sensor_threshold) and (int(line[4]) < sensor_threshold):    # TODO: maze end work
+
             # dead end
             motors.set_speeds(0,0)
             
@@ -251,8 +256,53 @@ def select_turn(found_left: bool, found_right: bool, found_straight: bool):
         return "B"
     
 def is_maze_end():
+    
+    # TODO: how to distinguish from an intersection, which will also trip all line sensors? 
+    # maybe move forward a bit and turn right (and/or left), if all sensors are black after turn, then maze end (may need circular end for this?)
+    
     line = line_sensors.read_calibrated()[:]
-    return ((int(line[0]) > 300) and (int(line[1]) > 600) and (int(line[2]) > 600) and (int(line[3]) > 600) and (int(line[4]) > 300))
+    if ((int(line[0]) > sensor_threshold) 
+            and (int(line[1]) > sensor_threshold) 
+            and (int(line[2]) > sensor_threshold) 
+            and (int(line[3]) > sensor_threshold) 
+            and (int(line[4]) > sensor_threshold)):
+        
+        # TODO: go forward just a bit
+        # might work with thinner path lines
+
+        display_show(f"forward bit")
+
+        motors.set_speeds(500,500)
+        
+        time.sleep_ms(175)
+        
+        motors.set_speeds(0,0)
+
+        # return True
+    
+        # if still black for all sensors after slightly moving forward, then return true since probably maze end and not an intersection
+        line = line_sensors.read_calibrated()[:]
+        return ((int(line[0]) > sensor_threshold) 
+                and (int(line[1]) > sensor_threshold) 
+                and (int(line[2]) > sensor_threshold) 
+                and (int(line[3]) > sensor_threshold) 
+                and (int(line[4]) > sensor_threshold))
+        
+
+    return False
+
+
+    # line = line_sensors.read_calibrated()[:]
+    
+    # display_show(f"line {line}")
+
+    # black_threshold = 500   # change to refer to sensor_threshold var, or have diff black white grey thresholds like in C++ implementation?
+    # return ((int(line[0]) > black_threshold) and (int(line[1]) > black_threshold) and (int(line[2]) > black_threshold) and (int(line[3]) > black_threshold) and (int(line[4]) > black_threshold))
+    # return ((int(line[0]) > sensor_threshold) 
+    #         and (int(line[1]) > sensor_threshold) 
+    #         and (int(line[2]) > sensor_threshold) 
+    #         and (int(line[3]) > sensor_threshold) 
+    #         and (int(line[4]) > sensor_threshold))
     
 
 def end():
@@ -489,7 +539,7 @@ def display_show(message: str):
 
 def sleep():    
     # delay x milliseconds, usually for transitioning between text on display
-    time.sleep_ms(1000)
+    time.sleep_ms(300)
 
 
 # DRIVER CODE

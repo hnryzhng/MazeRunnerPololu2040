@@ -407,8 +407,7 @@ def simplify_path():
     
     # path_length = len(path_history)
 
-    # EXPECTED = [L, B, L]
-    # ACTUAL = [S, B, L, B]
+    # DEBUG on T-shaped test maze: EXPECTED = [L, B, L], ACTUAL = [S, B, L, B]
     
     # validation: simplify path only if there are at least 3 steps and second-to-last turn is B
     if (path_length < 3 or path_history[path_length-2]  != 'B'):
@@ -481,7 +480,8 @@ def save_path_history(filename="path_history.txt"):
 
     try:
         with open(filename, 'w') as f:
-            f.write(write_path_history)
+            path_history_string = "\n".join(write_path_history)  # concatenated string of path steps separated by newlines
+            f.write(path_history_string)
         # TODO: add garbage collection?
         # gc.collect()
     except Exception as e:

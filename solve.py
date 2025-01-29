@@ -382,23 +382,14 @@ def simplify_path():
     """
         Path Simplification Mapping:
 
-        L B L -> S, (270 + 180 + 270) modulo 360 -> 0
-        R B L -> B, (90 + 180 + 270) modulo 360 -> 180 
-        S B L -> R, (0 + 180 + 270) modulo 360 ->  90 
+        L B L -> S, (270 + 180 + 270) modulo 360 -> 0 - VALIDATED
+        R B L -> B, (90 + 180 + 270) modulo 360 -> 180  - VALIDATED
+        S B L -> R, (0 + 180 + 270) modulo 360 ->  90 - VALIDATED
         
-        L B R -> B, (270 + 180 + 90) modulo 360 -> 180 
-        R B R -> S,  (henry added) (90 + 180 + 90) modulo 360 -> 0
-        S B R -> L, (henry added) (0 + 180 + 90) modulo 360 -> 270 
+        L B R -> B, (270 + 180 + 90) modulo 360 -> 180 - VALIDATED
+        R B R -> S,  (90 + 180 + 90) modulo 360 -> 0 - NOT VALIDATED, FOR RIGHT-HAND RULE
+        S B R -> L, (0 + 180 + 90) modulo 360 -> 270 - NOT VALIDATED, FOR RIGHT-HAND RULe
 
-        
-
-        Adapted Mapping (without step 'S'): TEST - S is still remembered right now
-        L B L -> _ (S)
-        R B L -> B 
-        _ B L -> R (possibly invalid if we get the turns at intersection, since only two steps would introduce overlap with previous chunk of triplet steps, more complicated to parse)
-        _ B R -> L (possibly invalid if we get the turns at intersection, since only two steps would introduce overlap with previous chunk of triplet steps, more complicated to parse)
-        R B R -> _ (S)  (henry added: validate if works in implementation below)
-        L B R -> B  (henry added: validate if works in implementation below)
     """
     # TODO: should we pass in global var path_history then write to file at end, or reduce and write to file at each call to remember()?
     # if so, may need to rewrite how remember() to how path_history is handled and read from file after each loop?

@@ -18,6 +18,7 @@ button_a = robot.ButtonA()  # Note: It's not safe to use Button B in a multi-cor
 
 # path history variables
 path_history = []   # List to store the steps taken
+path_length = 0
 PATH_HISTORY_FILE_NAME = "path_history.txt"
 
 # constants to tweak
@@ -357,9 +358,11 @@ def get_available_directions():
 def remember(direction: str):
     """ Remembers the direction the robot takes. """
     
-    global path_history
+    global path_history, path_length
 
     path_history.append(direction)  # TODO: right now, path_history is not actually written to file...
+
+    path_length += 1
 
     print(f"Path recorded: {direction}")  # Debug print to confirm
     display_show(f"Path recorded: {direction}")
@@ -400,9 +403,12 @@ def simplify_path():
     # TODO: should we pass in global var path_history then write to file at end, or reduce and write to file at each call to remember()?
     # if so, may need to rewrite how remember() to how path_history is handled and read from file after each loop?
     
-    global path_history
+    global path_history, path_length
     
-    path_length = len(path_history)
+    # path_length = len(path_history)
+
+    # EXPECTED = [L, B, L]
+    # ACTUAL = [S, B, L, B]
     
     # validation: simplify path only if there are at least 3 steps and second-to-last turn is B
     if (path_length < 3 or path_history[path_length-2]  != 'B'):
@@ -435,7 +441,7 @@ def simplify_path():
         path_history[path_length-3] = 'L'
         
     # The path is now 2 steps shorter (3 steps reduced to 1)
-    # path_length -= 2    # TODO: statement only needed if path_length is a global var
+    path_length -= 2    # TODO: statement only needed if path_length is a global var
 
 
 def clear_path_history(filename="path_history.txt"):
@@ -468,12 +474,14 @@ def log_to_file(message, filename="path_history.txt"):
 def save_path_history(filename="path_history.txt"):
     # Write entire path history list to specified file
 
-    global path_history
+    global path_history, path_length
+
+    write_path_history = path_history[0:path_length]    # truncate extra paths
+    display_show(f"s w ph: {write_path_history}")
 
     try:
         with open(filename, 'w') as f:
-            # f.write(message + "\n")
-            f.write(path_history)
+            f.write(write_path_history)
         # TODO: add garbage collection?
         # gc.collect()
     except Exception as e:

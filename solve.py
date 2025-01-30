@@ -160,7 +160,7 @@ def solve():
         # line = line_sensors.read_calibrated()[:]
 
         display_show('decide on dir')
-        if is_maze_end():
+        if is_maze_end() == True:
             # update_display("End")
             display_show("End")
             
@@ -283,11 +283,13 @@ def is_maze_end():
     
         # if still black for all sensors after slightly moving forward, then return true since probably maze end and not an intersection
         line = line_sensors.read_calibrated()[:]
-        return ((int(line[0]) > sensor_threshold) 
+        if ((int(line[0]) > sensor_threshold) 
                 and (int(line[1]) > sensor_threshold) 
                 and (int(line[2]) > sensor_threshold) 
                 and (int(line[3]) > sensor_threshold) 
-                and (int(line[4]) > sensor_threshold))
+                and (int(line[4]) > sensor_threshold)):
+            display_show(f"maze end")
+            return True
         
 
     return False
@@ -316,7 +318,7 @@ def get_available_directions():
     display.fill(0)
     initial_count = encoders.get_counts()
 
-    display_show(f"get a dir")
+    display_show(f"get directions")
 
     try:
         line = line_sensors.read_calibrated()[:]

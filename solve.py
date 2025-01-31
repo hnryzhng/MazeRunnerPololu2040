@@ -370,7 +370,7 @@ def remember(direction: str):
     display_show(f"Path recorded: {direction}")
     
     simplify_path()
-    # display_show(f"PH: {path_history}")   # TODO: global var path history list works
+    display_show(f"PH: {path_history}")   # TODO: global var path history list works
 
     # log_to_file(direction)  # Log the direction
     # TODO: may need to put save_path_history at end of maze condition within solve()
@@ -387,6 +387,9 @@ def simplify_path():
         L B L -> S, (270 + 180 + 270) modulo 360 -> 0 - VALIDATED
         R B L -> B, (90 + 180 + 270) modulo 360 -> 180  - VALIDATED
         S B L -> R, (0 + 180 + 270) modulo 360 ->  90 - VALIDATED
+
+        L B S -> R (added) (270 + 180 + 0) modulo 360 -> 90 - VALIDATED
+        R B S -> L (added) (90 + 180 + 0) modulo 360 -> 270 - 
         
         L B R -> B, (270 + 180 + 90) modulo 360 -> 180 - VALIDATED
         R B R -> S,  (90 + 180 + 90) modulo 360 -> 0 - NOT VALIDATED, FOR RIGHT-HAND RULE
@@ -469,6 +472,8 @@ def save_path_history(filename="path_history.txt"):
     global path_history, path_length
 
     write_path_history = path_history[0:path_length]    # truncate extra paths
+    write_path_history.append("S")  # TODO: may need to add S to the end since right now a R or L during recall just makes the robot turn without going forward
+    
     display_show(f"s w ph: {write_path_history}")
 
     try:

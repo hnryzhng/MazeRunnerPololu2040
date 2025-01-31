@@ -389,11 +389,11 @@ def simplify_path():
         S B L -> R, (0 + 180 + 270) modulo 360 ->  90 - VALIDATED
 
         L B S -> R (added) (270 + 180 + 0) modulo 360 -> 90 - VALIDATED
-        R B S -> L (added) (90 + 180 + 0) modulo 360 -> 270 - 
+        R B S -> L (added) (90 + 180 + 0) modulo 360 -> 270 - NOT VALIDATED, FOR RIGHT HAND RULE
         
         L B R -> B, (270 + 180 + 90) modulo 360 -> 180 - VALIDATED
         R B R -> S,  (90 + 180 + 90) modulo 360 -> 0 - NOT VALIDATED, FOR RIGHT-HAND RULE
-        S B R -> L, (0 + 180 + 90) modulo 360 -> 270 - NOT VALIDATED, FOR RIGHT-HAND RULe
+        S B R -> L, (0 + 180 + 90) modulo 360 -> 270 - NOT VALIDATED, FOR RIGHT-HAND RULE
 
     """
     # TODO: should we pass in global var path_history then write to file at end, or reduce and write to file at each call to remember()?

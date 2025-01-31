@@ -18,6 +18,7 @@ button_a = robot.ButtonA()  # Note: It's not safe to use Button B in a multi-cor
 
 # path history variables
 path_history = []   # List to store the steps taken
+path_length = 0
 PATH_HISTORY_FILE_NAME = "path_history.txt"
 
 # constants to tweak
@@ -162,7 +163,11 @@ def solve():
         if is_maze_end() == True:
             # update_display("End")
             display_show("End")
+            
             print("Maze END")
+
+            save_path_history()
+
             end()
 
             gc.collect()
@@ -355,14 +360,81 @@ def get_available_directions():
 def remember(direction: str):
     """ Remembers the direction the robot takes. """
     
-    global path_history
+    global path_history, path_length
 
-    path_history.append(direction)
-    
+    path_history.append(direction)  # TODO: right now, path_history is not actually written to file...
+
+    path_length += 1
+
     print(f"Path recorded: {direction}")  # Debug print to confirm
     display_show(f"Path recorded: {direction}")
+    
+    simplify_path()
+    # display_show(f"PH: {path_history}")   # TODO: global var path history list works
 
-    log_to_file(direction)  # Log the direction to the file so path history can be accessed even after soft reboot
+    # log_to_file(direction)  # Log the direction
+    # TODO: may need to put save_path_history at end of maze condition within solve()
+
+
+# Path simplification.  The strategy is that whenever we encounter a
+# sequence xBx, we can simplify it by cutting out the dead end.  For
+# example, LBL -> S, because a single S bypasses the dead end
+# represented by LBL.
+def simplify_path():
+    """
+        Path Simplification Mapping:
+
+        L B L -> S, (270 + 180 + 270) modulo 360 -> 0 - VALIDATED
+        R B L -> B, (90 + 180 + 270) modulo 360 -> 180  - VALIDATED
+        S B L -> R, (0 + 180 + 270) modulo 360 ->  90 - VALIDATED
+        
+        L B R -> B, (270 + 180 + 90) modulo 360 -> 180 - VALIDATED
+        R B R -> S,  (90 + 180 + 90) modulo 360 -> 0 - NOT VALIDATED, FOR RIGHT-HAND RULE
+        S B R -> L, (0 + 180 + 90) modulo 360 -> 270 - NOT VALIDATED, FOR RIGHT-HAND RULe
+
+    """
+    # TODO: should we pass in global var path_history then write to file at end, or reduce and write to file at each call to remember()?
+    # if so, may need to rewrite how remember() to how path_history is handled and read from file after each loop?
+    
+    global path_history, path_length
+    
+    # path_length = len(path_history)
+
+    # DEBUG on T-shaped test maze: EXPECTED = [L, B, L], ACTUAL = [S, B, L, B]
+    
+    # validation: simplify path only if there are at least 3 steps and second-to-last turn is B
+    if (path_length < 3 or path_history[path_length-2]  != 'B'):
+        return
+
+    # TODO: if reducing a path chunk that includes S, will need to remember S in path history
+
+    # Approach 1: original implementation with counting angles
+    total_angle = 0
+    for i in range(1, 3+1):
+        current_step = path_history[path_length-i]
+        if current_step == 'R':
+            total_angle += 90
+        elif current_step == 'L':
+            total_angle += 270
+        elif current_step == 'B':
+            total_angle += 180
+
+    # Get angle as number between 0 and 360 degrees
+    total_angle = total_angle % 360
+
+    # Replace all of the set of steps with the corresponding single step
+    if total_angle == 0:
+        path_history[path_length-3] = 'S'
+    elif total_angle == 90:
+        path_history[path_length-3] = 'R'
+    elif total_angle == 180:
+        path_history[path_length-3] = 'B'
+    elif total_angle == 270:
+        path_history[path_length-3] = 'L'
+        
+    # The path is now 2 steps shorter (3 steps reduced to 1)
+    path_length -= 2    # TODO: statement only needed if path_length is a global var
+
 
 def clear_path_history(filename="path_history.txt"):
     try:
@@ -386,9 +458,41 @@ def log_to_file(message, filename="path_history.txt"):
     try:
         with open(filename, 'a') as f:
             f.write(message + "\n")
+        # TODO: add garbage collection?
+        # gc.collect()
     except Exception as e:
         print(f"Error logging to file: {e}")
-    
+
+def save_path_history(filename="path_history.txt"):
+    # Write entire path history list to specified file
+
+    global path_history, path_length
+
+    write_path_history = path_history[0:path_length]    # truncate extra paths
+    display_show(f"s w ph: {write_path_history}")
+
+    try:
+        with open(filename, 'w') as f:
+            path_history_string = "\n".join(write_path_history)  # concatenated string of path steps separated by newlines
+            f.write(path_history_string)
+        # TODO: add garbage collection?
+        # gc.collect()
+    except Exception as e:
+        print(f"Error logging to file: {e}")
+
+def read_path_history(filename="path_history.txt"):
+    # Read entire path history list from specified file
+
+    output_path_history = []
+    try:
+        with open(filename, 'r') as f:
+            output_path_history = f.read()
+            print(f"Successfully read path history {path_history}")
+    except Exception as e:
+        print(f"Error reading file: {e}")
+
+    return output_path_history
+
 def read_file(filename="path_history.txt"):
     
     # DEBUG

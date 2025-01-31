@@ -37,10 +37,10 @@ def initialize():
     display_show('initializing')
 
     global path_history, current_step
-    path_history = read_file()  # Read the path history from the file at startup
-    # path_history = ["L", "R", "L", "L", "R", "L", "R"]  # mock for testing
+    
+    # path_history = ["S", "B", "S"]  # mock for testing
+    path_history = load_path_history()
     current_step = 0  # Reset the current step pointer to the beginning of the path history
-
 
     # calibrate sensors (line sensor, encoder)
     line = line_sensors.read_calibrated()[:]
@@ -375,6 +375,24 @@ def get_available_directions():
 
     gc.collect()
     return directions
+
+def load_path_history(filename="path_history.txt"):
+    # Read entire path history list from specified file
+
+    output_path_history = []
+    try:
+        with open(filename, 'r') as f:
+
+            path_history_string = f.readlines()
+            output_path_history = [line.strip() for line in path_history_string] # Strip newline characters and return the list
+
+            display_show(f"o p h: {output_path_history}")
+            print(f"Successfully read path history {output_path_history}")
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        output_path_history = []
+    
+    return output_path_history
 
     
 def read_file(filename="path_history.txt"):

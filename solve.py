@@ -318,7 +318,7 @@ def get_available_directions():
     display.fill(0)
     initial_count = encoders.get_counts()
 
-    display_show(f"get directions")
+    display_show(f"get dirs")
 
     try:
         line = line_sensors.read_calibrated()[:]
